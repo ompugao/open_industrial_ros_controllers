@@ -13,6 +13,7 @@
 #include <diagnostic_updater/DiagnosticStatusWrapper.h>
 #include <pr2_controller_manager/controller_manager.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
+#include "open_controllers_interface/GripperCommand.h"
 
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
@@ -63,6 +64,7 @@ namespace OpenControllersInterface {
     virtual ~OpenController();
     virtual ControllerStatusPtr updateJoints(struct timespec*) = 0;
     virtual ControllerStatusPtr recoverController() = 0;
+    virtual ControllerStatusPtr moveGripper(int value) = 0;
     virtual void finalizeHW() = 0;
 
     static bool initRT();
@@ -99,6 +101,8 @@ namespace OpenControllersInterface {
          std_srvs::Empty::Response &resp);
     bool publishTraceService(std_srvs::Empty::Request &req,
            std_srvs::Empty::Response &resp);
+    bool gripperService(open_controllers_interface::GripperCommand::Request &req,
+           open_controllers_interface::GripperCommand::Response &resp);
     
     // virtual function you need to impelement
     void initialize();
@@ -133,6 +137,8 @@ namespace OpenControllersInterface {
     bool g_quit_;;
     bool g_halt_requested_;
     bool g_publish_trace_requested_;
+    bool g_move_gripper_;
+    int  g_move_gripper_value_;
     std::string robot_xml_file_;
     double min_acceptable_rt_loop_frequency_;
     double period_;
@@ -146,6 +152,7 @@ namespace OpenControllersInterface {
     ros::ServiceServer reset_service_;
     ros::ServiceServer halt_service_;
     ros::ServiceServer publishTrace_service_;
+    ros::ServiceServer gripper_service_;
     
   private:
   };

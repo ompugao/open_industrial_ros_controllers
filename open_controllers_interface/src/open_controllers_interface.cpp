@@ -57,7 +57,7 @@ static const int USEC_PER_SECOND = 1e6;
 
 namespace OpenControllersInterface {
   OpenController::OpenController():
-    not_sleep_clock_(false) { // constructor
+    not_sleep_clock_(false), g_move_gripper_(false) { // constructor
   }
 
   OpenController::~OpenController() {
@@ -80,6 +80,12 @@ namespace OpenControllersInterface {
     g_publish_trace_requested_ = true;
     return true;
   }
+  bool OpenController::gripperService(open_controllers_interface::GripperCommand::Request &req,
+                                           open_controllers_interface::GripperCommand::Response &resp) {
+    g_move_gripper_ = true;
+    g_move_gripper_value_ = req.value;
+    return true;
+  }
 
   double timespecDiff(struct timespec* a, struct timespec* b) {
     return (a->tv_sec - b->tv_sec) + double(a->tv_nsec - b->tv_nsec) / NSEC_PER_SECOND;
@@ -95,8 +101,14 @@ namespace OpenControllersInterface {
         {
           ROS_FATAL("oh no, no way to recover! quit!");
           g_quit_ = true;
+        } else {
+          ROS_INFO("succeeded to recover controller!");
         }
         g_reset_motors_ = false;
+      }
+      if (g_move_gripper_) {
+        this->moveGripper(g_move_gripper_value_);
+        g_move_gripper_ = false;
       }
     }
     ROS_INFO("good bye start()");
@@ -228,6 +240,10 @@ namespace OpenControllersInterface {
     publishTrace_service_
       = node.advertiseService("publish_trace",
                               &OpenController::publishTraceService,
+                              this);
+    gripper_service_
+      = node.advertiseService("gripper",
+                              &OpenController::gripperService,
                               this);
     
     publisher_.reset(new realtime_tools::RealtimePublisher<diagnostic_msgs::DiagnosticArray>(node, "/diagnostics", 2));
@@ -402,7 +418,7 @@ namespace OpenControllersInterface {
     struct timespec last_exec_time;
     clock_gettime(CLOCK_REALTIME, &last_exec_time);
     g_stats_.loop_count = 0;
-    while (!g_quit_ && !g_reset_motors_) {
+    while (!g_quit_ && !g_reset_motors_ && !g_move_gripper_) {
       g_stats_.loop_count++;
       // Track how long the actual loop takes
       double this_loop_start = now();

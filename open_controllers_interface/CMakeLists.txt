@@ -2,11 +2,18 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(open_controllers_interface)
 
-find_package(catkin REQUIRED COMPONENTS pr2_controller_manager roscpp std_srvs diagnostic_msgs diagnostic_updater)
+find_package(catkin REQUIRED COMPONENTS pr2_controller_manager roscpp std_srvs diagnostic_msgs diagnostic_updater message_generation)
+
+add_service_files(
+  DIRECTORY srv
+  FILES
+  GripperCommand.srv
+)
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
   DEPENDS
-  CATKIN-DEPENDS pr2_controller_manager pr2_controller_manager roscpp std_srvs diagnostic_msgs diagnostic_updater
+  CATKIN-DEPENDS pr2_controller_manager pr2_controller_manager roscpp std_srvs diagnostic_msgs diagnostic_updater message_runtime
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )
