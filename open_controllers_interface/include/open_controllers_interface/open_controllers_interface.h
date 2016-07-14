@@ -64,7 +64,7 @@ namespace OpenControllersInterface {
     virtual ~OpenController();
     virtual ControllerStatusPtr updateJoints(struct timespec*) = 0;
     virtual ControllerStatusPtr recoverController() = 0;
-    virtual ControllerStatusPtr moveGripper(int value) = 0;
+    virtual ControllerStatusPtr moveGripper(double value) = 0;
     virtual void finalizeHW() = 0;
 
     static bool initRT();
@@ -138,7 +138,7 @@ namespace OpenControllersInterface {
     bool g_halt_requested_;
     bool g_publish_trace_requested_;
     bool g_move_gripper_;
-    int  g_move_gripper_value_;
+    double  g_move_gripper_value_;
     std::string robot_xml_file_;
     double min_acceptable_rt_loop_frequency_;
     double period_;
